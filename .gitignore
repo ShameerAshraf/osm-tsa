@@ -1,0 +1,7 @@
+# ignore all map datasets
+*.pbf
+
+*DS_Store*
+
+*pycache*
+
