@@ -15,19 +15,6 @@ from plotting import *
 
 POINTS_IN_ROUTE = 5
 
-def route_verifier(routes):
-    for i in range(0, len(routes) - 1):
-        if routes[i][len(routes[i]) - 1] != routes[i+1][0]:
-            print(f"Error in comparing {i} and {i+1}")
-            return False
-
-    if routes[len(routes) - 1][len(routes[len(routes) - 1]) - 1] != routes[0][0]:
-            print(f"Error in comparing last and first")
-            return False
-
-    return True
-
-
 def plot_async(G, routes, route_colors, travel_time):
     fig, ax = ox.plot_graph_routes(G, routes, 
     route_colors=route_colors, 
@@ -53,14 +40,6 @@ def main():
 
     nodes, edges = osm.get_network(network_type="driving", nodes=True)
 
-    # Plot the data
-    #ax = edges.plot(figsize=(10,10), color="gray", lw=1.0)
-    #ax = nodes.plot(ax=ax, color="red", markersize=2)
-
-    # Zoom in to take a closer look
-    #ax.set_xlim([24.9375, 24.945])
-    #ax.set_ylim([60.17, 60.173])
-
     # Separate rows with / without speed limit information 
     mask = edges["maxspeed"].isnull()
     edges_without_maxspeed = edges.loc[mask].copy()
@@ -68,14 +47,10 @@ def main():
 
     # Apply the function and update the maxspeed
     edges_without_maxspeed["maxspeed"] = edges_without_maxspeed["highway"].apply(road_class_to_kmph)
-    #edges_without_maxspeed.head(5).loc[:, ["maxspeed", "highway"]]
 
     # merge with/without speed
     edges = pd.concat([edges_with_maxspeed, edges_without_maxspeed])
     edges["maxspeed"] = edges["maxspeed"].astype(int)
-
-    #visualize maxspeed on map
-    #ax = edges.plot(column="maxspeed", figsize=(10,10), legend=True)
 
     # assign travel time for edges
     edges["travel_time_seconds"] = edges["length"] / (edges["maxspeed"]/3.6)
@@ -89,7 +64,6 @@ def main():
 
     # cache has paths[source][destination] = route[nodes]
     # time both ways of creating cache
-
     # time_1_w
     cached_routes = build_cache_routes(G, random_node_ids, "w", nodes)
     # time_2_w
@@ -104,8 +78,8 @@ def main():
 
     routes, total_travel_time = create_path(G, cached_routes, random_node_ids)
 
-    #route_headings = cached_travel_direction[source][dest]
-    #print(route_headings)
+    #print(cached_travel_w)
+    #print(cached_travel_a)
 
     route_colors = create_roc(POINTS_IN_ROUTE)
 
