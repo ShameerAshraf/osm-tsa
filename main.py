@@ -28,10 +28,13 @@ def route_verifier(routes):
     return True
 
 
-def plot_async(G, routes, source):
-    temp_routes = list(routes[source].values())
-    fig, ax = ox.plot_graph_routes(G, temp_routes, show=False, close=False)
-    fig.suptitle(f"Source Node: {source}")
+def plot_async(G, routes, route_colors, travel_time):
+    fig, ax = ox.plot_graph_routes(G, routes, 
+    route_colors=route_colors, 
+    route_linewidth=6, node_size=0,
+    show=False, close=False)
+
+    fig.suptitle(f"Travel time: {travel_time} seconds")
     plt.show()
 
 def plot_async_single(G, route):
@@ -85,36 +88,33 @@ def main():
     random_node_ids = ox.distance.nearest_nodes(G, random_points.x.values, random_points.y.values)
 
     # cache has paths[source][destination] = route[nodes]
+    # time both ways of creating cache
+
+    # time_1_w
     cached_routes = build_cache_routes(G, random_node_ids, "w", nodes)
+    # time_2_w
 
-    #cached_astar = build_cache_routes(G, random_node_ids, "a", nodes)
-
-    loop = True
-    #draw = Process(target=plot_async, args=(G, cached_routes, 0))
-
-    # random source and destination to plot
-    source = random_node_ids[0]
-    dest = random_node_ids[1]
+    # time_1_a
+    cached_astar = build_cache_routes(G, random_node_ids, "a", nodes)
+    # time_2_a
 
     # create cache_travel_direction = [source][destination] = [NORTH, EAST, SOUTH, WEST]
-    cached_travel_direction = build_cache_direction(G, nodes, cached_routes)
+    cached_travel_w = build_cache_direction(G, nodes, cached_routes)
+    cached_travel_a = build_cache_direction(G, nodes, cached_astar)
 
-    #headings = [0, 0, 0, 0]
-    #route_headings = travel_headings(G, nodes, cached_routes[source][dest])
-    #route_headings = [x + y for x, y in zip(headings, route_headings)]
+    routes, total_travel_time = create_path(G, cached_routes, random_node_ids)
 
-    qwe()
+    #route_headings = cached_travel_direction[source][dest]
+    #print(route_headings)
 
-    route_headings = cached_travel_direction[source][dest]
-    print(route_headings)
+    route_colors = create_roc(POINTS_IN_ROUTE)
 
-    # plot a single route
-    draw = Process(target=plot_async_single, args=(G, cached_routes[source][dest]))
+    # plot routes
+    draw = Process(target=plot_async, args=(G, routes, route_colors, total_travel_time))
     draw.start()
 
+    loop = True
     while loop:
-
-        #index_1 = 0
 
         qwe()
 
@@ -122,19 +122,15 @@ def main():
         #if in_string == "quit":
         #    break
 
-        #print(f"############### SOURCE {index_1} ###############")
-
         #draw async
-        #route_colors = create_roc_with(POINTS_IN_ROUTE, "r")
         #draw = Process(target=plot_async, args=(G, cached_routes, random_node_ids[index_1]))
         if loop:
-            draw = Process(target=plot_async_single, args=(G, cached_routes[source][dest]))
+            draw = Process(target=plot_async, args=(G, routes, route_colors, total_travel_time))
             draw.start()
 
 
     print("\n ### CLOSE ALL GRAPH WINDOWS ###\n")
     draw.join()
-
 
 if __name__ == '__main__':
     main()

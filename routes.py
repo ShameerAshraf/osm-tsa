@@ -211,3 +211,31 @@ def swap_if_less(G, routes, index_1, index_2, total_travel_time):
         return new_routes, new_total_travel_time, modifying_route
 
     return routes, total_travel_time, False
+
+# create path to plot
+def create_path(G, cached_routes, random_node_ids):
+
+    routes = []
+    total_travel_time = 0
+
+    for i in range(0, len(random_node_ids) - 1):
+        #print(f"############### ROUTE {i} ###############")
+        route = cached_routes[random_node_ids[i]][random_node_ids[i+1]]
+
+        # sum up travel_time_seconds for the route
+        travel_time = nx.path_weight(G, route, "travel_time_seconds")
+        #print("####### TRAVEL TIME " + str(travel_time) + " #######")
+
+        # store routes and corresponding travel_time_seconds for routes
+        routes.append(route)
+        total_travel_time += travel_time
+
+    route = cached_routes[random_node_ids[len(random_node_ids) - 1]][random_node_ids[0]]
+    travel_time = nx.path_weight(G, route, "travel_time_seconds")
+    #print(f"############### ROUTE {len(random_node_ids) - 1} ###############")
+    #print("####### TRAVEL TIME " + str(travel_time) + " #######")
+    routes.append(route)
+    total_travel_time += travel_time
+    print("####### TOTAL TRAVEL TIME FOR ORIGINAL ROUTE " + str(total_travel_time) + " #######")
+
+    return routes, total_travel_time
